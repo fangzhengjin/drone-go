@@ -174,7 +174,7 @@ func (c *client) IncompleteV2() ([]*RepoBuildStage, error) {
 // Repo returns a repository by name.
 func (c *client) Repo(owner, name string) (*Repo, error) {
 	out := new(Repo)
-	uri := fmt.Sprintf(pathRepo, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepo, c.addr, url.QueryEscape(owner), name)
 	err := c.get(uri, out)
 	return out, err
 }
@@ -212,21 +212,21 @@ func (c *client) RepoListAll(opts ListOptions) ([]*Repo, error) {
 // RepoEnable activates a repository.
 func (c *client) RepoEnable(owner, name string) (*Repo, error) {
 	out := new(Repo)
-	uri := fmt.Sprintf(pathRepo, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepo, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, nil, out)
 	return out, err
 }
 
 // RepoDisable disables a repository.
 func (c *client) RepoDisable(owner, name string) error {
-	uri := fmt.Sprintf(pathRepo, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepo, c.addr, url.QueryEscape(owner), name)
 	err := c.delete(uri)
 	return err
 }
 
 // RepoDelete permanently deletes a repository.
 func (c *client) RepoDelete(owner, name string) error {
-	uri := fmt.Sprintf(pathRepo+"?remove=true", c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepo+"?remove=true", c.addr, url.QueryEscape(owner), name)
 	err := c.delete(uri)
 	return err
 }
@@ -234,7 +234,7 @@ func (c *client) RepoDelete(owner, name string) error {
 // RepoUpdate updates a repository.
 func (c *client) RepoUpdate(owner, name string, in *RepoPatch) (*Repo, error) {
 	out := new(Repo)
-	uri := fmt.Sprintf(pathRepo, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepo, c.addr, url.QueryEscape(owner), name)
 	err := c.patch(uri, in, out)
 	return out, err
 }
@@ -242,21 +242,21 @@ func (c *client) RepoUpdate(owner, name string, in *RepoPatch) (*Repo, error) {
 // RepoChown updates a repository owner.
 func (c *client) RepoChown(owner, name string) (*Repo, error) {
 	out := new(Repo)
-	uri := fmt.Sprintf(pathChown, c.addr, owner, name)
+	uri := fmt.Sprintf(pathChown, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, nil, out)
 	return out, err
 }
 
 // RepoRepair repais the repository hooks.
 func (c *client) RepoRepair(owner, name string) error {
-	uri := fmt.Sprintf(pathRepair, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepair, c.addr, url.QueryEscape(owner), name)
 	return c.post(uri, nil, nil)
 }
 
 // Build returns a repository build by number.
 func (c *client) Build(owner, name string, num int) (*Build, error) {
 	out := new(Build)
-	uri := fmt.Sprintf(pathBuild, c.addr, owner, name, num)
+	uri := fmt.Sprintf(pathBuild, c.addr, url.QueryEscape(owner), name, num)
 	err := c.get(uri, out)
 	return out, err
 }
@@ -264,7 +264,7 @@ func (c *client) Build(owner, name string, num int) (*Build, error) {
 // Build returns the latest repository build by branch.
 func (c *client) BuildLast(owner, name, branch string) (*Build, error) {
 	out := new(Build)
-	uri := fmt.Sprintf(pathBuild, c.addr, owner, name, "latest")
+	uri := fmt.Sprintf(pathBuild, c.addr, url.QueryEscape(owner), name, "latest")
 	if branch != "" {
 		uri += "?branch=" + branch
 	}
@@ -276,7 +276,7 @@ func (c *client) BuildLast(owner, name, branch string) (*Build, error) {
 // the specified repository.
 func (c *client) BuildList(owner, name string, opts ListOptions) ([]*Build, error) {
 	var out []*Build
-	uri := fmt.Sprintf(pathBuilds, c.addr, owner, name, encodeListOptions(opts))
+	uri := fmt.Sprintf(pathBuilds, c.addr, url.QueryEscape(owner), name, encodeListOptions(opts))
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -291,7 +291,7 @@ func (c *client) BuildCreate(owner, name, commit, branch string, params map[stri
 	if branch != "" {
 		val.Set("branch", branch)
 	}
-	uri := fmt.Sprintf(pathBuilds, c.addr, owner, name, val.Encode())
+	uri := fmt.Sprintf(pathBuilds, c.addr, url.QueryEscape(owner), name, val.Encode())
 
 	err := c.post(uri, nil, out)
 	return out, err
@@ -301,7 +301,7 @@ func (c *client) BuildCreate(owner, name, commit, branch string, params map[stri
 func (c *client) BuildRestart(owner, name string, build int, params map[string]string) (*Build, error) {
 	out := new(Build)
 	val := mapValues(params)
-	uri := fmt.Sprintf(pathBuild, c.addr, owner, name, build)
+	uri := fmt.Sprintf(pathBuild, c.addr, url.QueryEscape(owner), name, build)
 	if len(params) > 0 {
 		uri = uri + "?" + val.Encode()
 	}
@@ -311,7 +311,7 @@ func (c *client) BuildRestart(owner, name string, build int, params map[string]s
 
 // BuildCancel cancels the running job.
 func (c *client) BuildCancel(owner, name string, build int) error {
-	uri := fmt.Sprintf(pathBuild, c.addr, owner, name, build)
+	uri := fmt.Sprintf(pathBuild, c.addr, url.QueryEscape(owner), name, build)
 	err := c.delete(uri)
 	return err
 }
@@ -319,7 +319,7 @@ func (c *client) BuildCancel(owner, name string, build int) error {
 // BuildPurge purges the build history.
 func (c *client) BuildPurge(owner, name string, before int) error {
 	param := fmt.Sprintf("before=%d", before)
-	uri := fmt.Sprintf(pathBuilds, c.addr, owner, name, param)
+	uri := fmt.Sprintf(pathBuilds, c.addr, url.QueryEscape(owner), name, param)
 	err := c.delete(uri)
 	return err
 }
@@ -329,7 +329,7 @@ func (c *client) Promote(namespace, name string, build int, target string, param
 	out := new(Build)
 	val := mapValues(params)
 	val.Set("target", target)
-	uri := fmt.Sprintf(pathPromote, c.addr, namespace, name, build, val.Encode())
+	uri := fmt.Sprintf(pathPromote, c.addr, url.QueryEscape(namespace), name, build, val.Encode())
 	err := c.post(uri, nil, out)
 	return out, err
 }
@@ -339,21 +339,21 @@ func (c *client) Rollback(namespace, name string, build int, target string, para
 	out := new(Build)
 	val := mapValues(params)
 	val.Set("target", target)
-	uri := fmt.Sprintf(pathRollback, c.addr, namespace, name, build, val.Encode())
+	uri := fmt.Sprintf(pathRollback, c.addr, url.QueryEscape(namespace), name, build, val.Encode())
 	err := c.post(uri, nil, out)
 	return out, err
 }
 
 // Approve approves a blocked build stage.
 func (c *client) Approve(namespace, name string, build, stage int) error {
-	uri := fmt.Sprintf(pathApprove, c.addr, namespace, name, build, stage)
+	uri := fmt.Sprintf(pathApprove, c.addr, url.QueryEscape(namespace), name, build, stage)
 	err := c.post(uri, nil, nil)
 	return err
 }
 
 // Decline declines a blocked build stage.
 func (c *client) Decline(namespace, name string, build, stage int) error {
-	uri := fmt.Sprintf(pathDecline, c.addr, namespace, name, build, stage)
+	uri := fmt.Sprintf(pathDecline, c.addr, url.QueryEscape(namespace), name, build, stage)
 	err := c.post(uri, nil, nil)
 	return err
 }
@@ -361,14 +361,14 @@ func (c *client) Decline(namespace, name string, build, stage int) error {
 // BuildLogs returns the build logs for the specified job.
 func (c *client) Logs(owner, name string, build, stage, step int) ([]*Line, error) {
 	var out []*Line
-	uri := fmt.Sprintf(pathLog, c.addr, owner, name, build, stage, step)
+	uri := fmt.Sprintf(pathLog, c.addr, url.QueryEscape(owner), name, build, stage, step)
 	err := c.get(uri, &out)
 	return out, err
 }
 
 // LogsPurge purges the build logs for the specified build.
 func (c *client) LogsPurge(owner, name string, build, stage, step int) error {
-	uri := fmt.Sprintf(pathLog, c.addr, owner, name, build, stage, step)
+	uri := fmt.Sprintf(pathLog, c.addr, url.QueryEscape(owner), name, build, stage, step)
 	err := c.delete(uri)
 	return err
 }
@@ -381,7 +381,7 @@ func (c *client) Sign(owner, name, file string) (string, error) {
 	out := struct {
 		Data string `json:"data"`
 	}{}
-	uri := fmt.Sprintf(pathSign, c.addr, owner, name)
+	uri := fmt.Sprintf(pathSign, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, &in, &out)
 	return out.Data, err
 }
@@ -391,7 +391,7 @@ func (c *client) Verify(owner, name, file string) error {
 	in := struct {
 		Data string `json:"data"`
 	}{Data: file}
-	uri := fmt.Sprintf(pathVerify, c.addr, owner, name)
+	uri := fmt.Sprintf(pathVerify, c.addr, url.QueryEscape(owner), name)
 	return c.post(uri, &in, nil)
 }
 
@@ -400,7 +400,7 @@ func (c *client) Encrypt(owner, name string, secret *Secret) (string, error) {
 	out := struct {
 		Data string `json:"data"`
 	}{}
-	uri := fmt.Sprintf(pathEncryptSecret, c.addr, owner, name)
+	uri := fmt.Sprintf(pathEncryptSecret, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, secret, &out)
 	return out.Data, err
 }
@@ -408,7 +408,7 @@ func (c *client) Encrypt(owner, name string, secret *Secret) (string, error) {
 // Secret returns a secret by name.
 func (c *client) Secret(owner, name, secret string) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathRepoSecret, c.addr, owner, name, secret)
+	uri := fmt.Sprintf(pathRepoSecret, c.addr, url.QueryEscape(owner), name, secret)
 	err := c.get(uri, out)
 	return out, err
 }
@@ -416,7 +416,7 @@ func (c *client) Secret(owner, name, secret string) (*Secret, error) {
 // SecretList returns a list of all repository secrets.
 func (c *client) SecretList(owner, name string) ([]*Secret, error) {
 	var out []*Secret
-	uri := fmt.Sprintf(pathRepoSecrets, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepoSecrets, c.addr, url.QueryEscape(owner), name)
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -424,7 +424,7 @@ func (c *client) SecretList(owner, name string) ([]*Secret, error) {
 // SecretCreate creates a secret.
 func (c *client) SecretCreate(owner, name string, in *Secret) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathRepoSecrets, c.addr, owner, name)
+	uri := fmt.Sprintf(pathRepoSecrets, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, in, out)
 	return out, err
 }
@@ -432,21 +432,21 @@ func (c *client) SecretCreate(owner, name string, in *Secret) (*Secret, error) {
 // SecretUpdate updates a secret.
 func (c *client) SecretUpdate(owner, name string, in *Secret) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathRepoSecret, c.addr, owner, name, in.Name)
+	uri := fmt.Sprintf(pathRepoSecret, c.addr, url.QueryEscape(owner), name, in.Name)
 	err := c.patch(uri, in, out)
 	return out, err
 }
 
 // SecretDelete deletes a secret.
 func (c *client) SecretDelete(owner, name, secret string) error {
-	uri := fmt.Sprintf(pathRepoSecret, c.addr, owner, name, secret)
+	uri := fmt.Sprintf(pathRepoSecret, c.addr, url.QueryEscape(owner), name, secret)
 	return c.delete(uri)
 }
 
 // OrgSecret returns a secret by name.
 func (c *client) OrgSecret(namespace, name string) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathSecretsName, c.addr, namespace, name)
+	uri := fmt.Sprintf(pathSecretsName, c.addr, url.QueryEscape(namespace), name)
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -454,7 +454,7 @@ func (c *client) OrgSecret(namespace, name string) (*Secret, error) {
 // OrgSecretList returns a list of all repository secrets.
 func (c *client) OrgSecretList(namespace string) ([]*Secret, error) {
 	var out []*Secret
-	uri := fmt.Sprintf(pathSecretsNamespace, c.addr, namespace)
+	uri := fmt.Sprintf(pathSecretsNamespace, c.addr, url.QueryEscape(namespace))
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -470,7 +470,7 @@ func (c *client) OrgSecretListAll() ([]*Secret, error) {
 // OrgSecretCreate creates a registry.
 func (c *client) OrgSecretCreate(namespace string, in *Secret) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathSecretsNamespace, c.addr, namespace)
+	uri := fmt.Sprintf(pathSecretsNamespace, c.addr, url.QueryEscape(namespace))
 	err := c.post(uri, in, out)
 	return out, err
 }
@@ -478,21 +478,21 @@ func (c *client) OrgSecretCreate(namespace string, in *Secret) (*Secret, error) 
 // OrgSecretUpdate updates a registry.
 func (c *client) OrgSecretUpdate(namespace string, in *Secret) (*Secret, error) {
 	out := new(Secret)
-	uri := fmt.Sprintf(pathSecretsName, c.addr, namespace, in.Name)
+	uri := fmt.Sprintf(pathSecretsName, c.addr, url.QueryEscape(namespace), in.Name)
 	err := c.patch(uri, in, out)
 	return out, err
 }
 
 // OrgSecretDelete deletes a secret.
 func (c *client) OrgSecretDelete(namespace, name string) error {
-	uri := fmt.Sprintf(pathSecretsName, c.addr, namespace, name)
+	uri := fmt.Sprintf(pathSecretsName, c.addr, url.QueryEscape(namespace), name)
 	return c.delete(uri)
 }
 
 // Cron returns a cronjob by name.
 func (c *client) Cron(owner, name, cron string) (*Cron, error) {
 	out := new(Cron)
-	uri := fmt.Sprintf(pathCron, c.addr, owner, name, cron)
+	uri := fmt.Sprintf(pathCron, c.addr, url.QueryEscape(owner), name, cron)
 	err := c.get(uri, out)
 	return out, err
 }
@@ -500,7 +500,7 @@ func (c *client) Cron(owner, name, cron string) (*Cron, error) {
 // CronList returns a list of all repository cronjobs.
 func (c *client) CronList(owner, name string) ([]*Cron, error) {
 	var out []*Cron
-	uri := fmt.Sprintf(pathCrons, c.addr, owner, name)
+	uri := fmt.Sprintf(pathCrons, c.addr, url.QueryEscape(owner), name)
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -508,7 +508,7 @@ func (c *client) CronList(owner, name string) ([]*Cron, error) {
 // CronCreate creates a cronjob.
 func (c *client) CronCreate(owner, name string, in *Cron) (*Cron, error) {
 	out := new(Cron)
-	uri := fmt.Sprintf(pathCrons, c.addr, owner, name)
+	uri := fmt.Sprintf(pathCrons, c.addr, url.QueryEscape(owner), name)
 	err := c.post(uri, in, out)
 	return out, err
 }
@@ -516,20 +516,20 @@ func (c *client) CronCreate(owner, name string, in *Cron) (*Cron, error) {
 // CronUpdate disables a cronjob.
 func (c *client) CronUpdate(owner, name, cron string, in *CronPatch) (*Cron, error) {
 	out := new(Cron)
-	uri := fmt.Sprintf(pathCron, c.addr, owner, name, cron)
+	uri := fmt.Sprintf(pathCron, c.addr, url.QueryEscape(owner), name, cron)
 	err := c.patch(uri, in, out)
 	return out, err
 }
 
 // CronDelete deletes a cronjob.
 func (c *client) CronDelete(owner, name, cron string) error {
-	uri := fmt.Sprintf(pathCron, c.addr, owner, name, cron)
+	uri := fmt.Sprintf(pathCron, c.addr, url.QueryEscape(owner), name, cron)
 	return c.delete(uri)
 }
 
 // CronExec executes a cronjob.
 func (c *client) CronExec(owner, name, cron string) error {
-	uri := fmt.Sprintf(pathCron, c.addr, owner, name, cron)
+	uri := fmt.Sprintf(pathCron, c.addr, url.QueryEscape(owner), name, cron)
 	err := c.post(uri, nil, nil)
 	return err
 }
@@ -654,7 +654,7 @@ func (c *client) AutoscaleVersion() (*Version, error) {
 // Template returns a template by name.
 func (c *client) Template(namespace, name string) (*Template, error) {
 	out := new(Template)
-	uri := fmt.Sprintf(pathTemplateName, c.addr, namespace, name)
+	uri := fmt.Sprintf(pathTemplateName, c.addr, url.QueryEscape(namespace), name)
 	err := c.get(uri, out)
 	return out, err
 }
@@ -670,7 +670,7 @@ func (c *client) TemplateListAll() ([]*Template, error) {
 // TemplateList returns a list of all templates by namespace
 func (c *client) TemplateList(namespace string) ([]*Template, error) {
 	var out []*Template
-	uri := fmt.Sprintf(pathTemplateNamespace, c.addr, namespace)
+	uri := fmt.Sprintf(pathTemplateNamespace, c.addr, url.QueryEscape(namespace))
 	err := c.get(uri, &out)
 	return out, err
 }
@@ -678,7 +678,7 @@ func (c *client) TemplateList(namespace string) ([]*Template, error) {
 // TemplateCreate creates a template.
 func (c *client) TemplateCreate(namespace string, in *Template) (*Template, error) {
 	out := new(Template)
-	uri := fmt.Sprintf(pathTemplateNamespace, c.addr, namespace)
+	uri := fmt.Sprintf(pathTemplateNamespace, c.addr, url.QueryEscape(namespace))
 	err := c.post(uri, in, out)
 	return out, err
 }
@@ -686,14 +686,14 @@ func (c *client) TemplateCreate(namespace string, in *Template) (*Template, erro
 // TemplateUpdate updates a template.
 func (c *client) TemplateUpdate(namespace, name string, in *Template) (*Template, error) {
 	out := new(Template)
-	uri := fmt.Sprintf(pathTemplateName, c.addr, namespace, name)
+	uri := fmt.Sprintf(pathTemplateName, c.addr, url.QueryEscape(namespace), name)
 	err := c.patch(uri, in, out)
 	return out, err
 }
 
 // TemplateDelete deletes a template.
 func (c *client) TemplateDelete(namespace, name string) error {
-	uri := fmt.Sprintf(pathTemplateName, c.addr, namespace, name)
+	uri := fmt.Sprintf(pathTemplateName, c.addr, url.QueryEscape(namespace), name)
 	return c.delete(uri)
 }
 
